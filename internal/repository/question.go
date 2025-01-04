@@ -2,10 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"kingscomp/internal/entity"
+
 	"github.com/redis/rueidis"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
-	"kingscomp/internal/entity"
 )
 
 var _ Question = &QuestionRedisRepository{}
@@ -30,6 +32,7 @@ func (q *QuestionRedisRepository) GetActiveQuestions(ctx context.Context, index 
 	for i, id := range index {
 		cmds[i] = q.client.B().Lindex().Key("active_questions").Index(id).Build()
 	}
+	fmt.Println(len(index))
 	resp := q.client.DoMulti(ctx, cmds...)
 	err := ReduceRedisResponseError(resp)
 	if err != nil {
@@ -39,6 +42,7 @@ func (q *QuestionRedisRepository) GetActiveQuestions(ctx context.Context, index 
 
 	questionIds := lo.Map(resp, func(item rueidis.RedisResult, index int) entity.ID {
 		s, _ := item.ToString()
+		fmt.Println(s)
 		return entity.NewID("question", s)
 	})
 

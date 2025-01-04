@@ -2,10 +2,7 @@ package cmd
 
 import (
 	"context"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	_ "go.uber.org/automaxprocs"
+	"fmt"
 	"kingscomp/internal/config"
 	"kingscomp/internal/events"
 	"kingscomp/internal/gameserver"
@@ -20,6 +17,12 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	_ "go.uber.org/automaxprocs"
 )
 
 // serveCmd represents the serve command
@@ -29,7 +32,32 @@ var serveCmd = &cobra.Command{
 	Run:   serve,
 }
 
+type StacktraceHook struct {
+}
+
+func (h *StacktraceHook) Levels() []logrus.Level {
+    return logrus.AllLevels
+}
+
+func (h *StacktraceHook) Fire(e *logrus.Entry) error {
+    if v, found := e.Data[logrus.ErrorKey]; found {
+        if err, iserr := v.(error); iserr {
+            type stackTracer interface {
+                StackTrace() errors.StackTrace
+            }
+            if st, isst := err.(stackTracer); isst {
+                stack := fmt.Sprintf("%+v", st.StackTrace())
+                e.Data["stacktrace"] = stack
+            }
+        }
+    }
+    return nil
+}
+
 func serve(_ *cobra.Command, _ []string) {
+	logrus.SetFormatter(&logrus.TextFormatter{DisableQuote: true})
+	logrus.AddHook(&StacktraceHook{})
+
 	_ = godotenv.Load()
 	if os.Getenv("ENV") != "local" {
 		logrus.SetLevel(logrus.ErrorLevel)

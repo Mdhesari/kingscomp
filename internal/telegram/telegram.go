@@ -49,7 +49,7 @@ func NewTelegram(
 		Poller: &telebot.Webhook{
 			MaxConnections: 100,
 			Endpoint: &telebot.WebhookEndpoint{
-				PublicURL: config.Default.AppURL + "/webhook/" + config.Default.BotToken,
+				PublicURL: "https://d100-213-233-177-16.ngrok-free.app"+ "/webhook/" + config.Default.BotToken,
 			},
 		},
 		OnError: t.onError,

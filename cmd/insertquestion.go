@@ -5,14 +5,16 @@ package cmd
 
 import (
 	"context"
-	"github.com/joho/godotenv"
-	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
+	"fmt"
 	"kingscomp/internal/entity"
 	"kingscomp/internal/repository"
 	"kingscomp/internal/repository/redis"
 	"kingscomp/pkg/jsonhelper"
 	"os"
+
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 // insertQuestionCmd represents the insertQuestion command
@@ -27,7 +29,17 @@ var insertQuestionCmd = &cobra.Command{
 			logrus.Fatalln("please enter the file-path using --file-path")
 		}
 
-		questions := jsonhelper.Decode[[]entity.Question]([]byte(json))
+		data, err := os.ReadFile(json)
+		if err != nil {
+			logrus.Fatalln("Error opening file:", err)
+			return
+		}
+	
+		questions := jsonhelper.Decode[[]entity.Question]([]byte(data))
+
+		for _, q := range questions {
+			fmt.Println(q.Question)
+		}
 
 		_ = godotenv.Load()
 		// set up repositories

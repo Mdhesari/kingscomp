@@ -1,4 +1,4 @@
-FROM hub.hamdocker.ir/golang:1.21 as builder
+FROM hub.hamdocker.ir/golang:1.21 AS builder
 
 WORKDIR /app
 COPY go.mod .
